@@ -1,0 +1,40 @@
+name: "Custom Project Automations"
+description: "Project Automations"
+author: "Petros Andreou"
+branding:
+  icon: 'clock'
+  color: 'green'
+runs:
+  using: "docker"
+  image: "Dockerfile"
+inputs:
+  gh_token:
+    description: "The Personal Token"
+    required: true
+  project_number:
+    description: "The Project Number"
+    required: true
+  notify_for:
+    description: "The type of the notification are about to sent (expiring_issues,missing_duedate) "
+    required: true
+    default: "expiring_issues"
+  duedate_field_name:
+    description: "The field name"
+    required: true
+    default: "Due Date"
+  notification_type:
+    description: "The type of notification (comment,aws_email)"
+    required: true
+    default: 'comment'
+  repository_owner_type:
+    description: "The type of the repository owner (organization,user)"
+    required: true
+    default: 'user'
+  enterprise_github:
+    description: "Determines if the GitHub is the enterprise ot not (True,False)"
+    required: false
+    default: 'False'
+  dry_run:
+    description: "DryRun Mode (True,False)"
+    required: false
+    default: 'False'
