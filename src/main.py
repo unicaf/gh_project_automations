@@ -26,38 +26,32 @@ def fields_based_on_due_date(project, issue, updates):
     due_date = issue.get('dueDate').get('date')
     output = due_date
 
-    # Skip further checks if both 'release' and 'week' fields are already set
-    if issue.get('release') and issue.get('week'):
-        return comment_fields
-
     # Handle missing 'week' field by finding the appropriate week based on the due date
-    if not issue.get('week'):
-        week = utils.find_week(weeks=week_options, date_str=due_date)
-        if week:
-            # Add the 'week' field update to the updates list
-            updates.append({
-                "field_id": week_field['id'],
-                "type": "iteration",
-                "value": week['id']
-            })
-            output += f' -> Week {week}'
-            comment_fields.append('Week')
+    week = utils.find_week(weeks=week_options, date_str=due_date)
+    if week and week != issue.get('week'):
+        # Add the 'week' field update to the updates list
+        updates.append({
+            "field_id": week_field['id'],
+            "type": "iteration",
+            "value": week['id']
+        })
+        output += f' -> Week {week}'
+        comment_fields.append({'field': 'Week', 'value': week['title']})
 
     # Handle missing 'release' field by finding the appropriate release based on the due date
-    if not issue.get('release'):
-        release = utils.find_release(releases=release_options, date_str=due_date)
-        if release:
-            # Add the 'release' field update to the updates list
-            updates.append({
-                "field_id": release_field['id'],
-                "type": "single_select",
-                "value": release['id']
-            })
-            output += f' -> Release {release}'
-            comment_fields.append('Release')
+    release = utils.find_release(releases=release_options, date_str=due_date)
+    if release and release != issue.get('release'):
+        # Add the 'release' field update to the updates list
+        updates.append({
+            "field_id": release_field['id'],
+            "type": "single_select",
+            "value": release['id']
+        })
+        output += f' -> Release {release}'
+        comment_fields.append({'field': 'Release', 'value': release['name']})
 
     # Log the updates for debugging or tracking purposes
-    logger.info(output)
+    logger.debug(output)
 
     return comment_fields
 
@@ -80,13 +74,9 @@ def fields_based_on_estimation(project, issue, updates):
     estimate = issue.get('estimate').get('name')
     output = estimate
 
-    # Skip further checks if the 'size' field is already set
-    if issue.get('size'):
-        return comment_fields
-
     # Find the size corresponding to the estimate and update if found
     size = utils.find_size(sizes=size_options, estimate_name=estimate)
-    if size:
+    if size and size != issue.get('size'):
         # Add the 'size' field update to the updates list
         updates.append({
             "field_id": size_field['id'],
@@ -94,8 +84,8 @@ def fields_based_on_estimation(project, issue, updates):
             "value": size['id']
         })
         # Log the update for debugging or tracking purposes
-        logger.info(f'{output} -> Size {size}')
-        comment_fields.append('Release')
+        logger.debug(f'{output} -> Size {size}')
+        comment_fields.append({'field': 'Size', 'value': size['name']})
 
     return comment_fields
 
@@ -115,16 +105,23 @@ def set_missing_fields(issues):
         comment_fields += fields_based_on_due_date(project, issue, updates)
 
         # Apply updates if not in dry run mode
-        if not config.dry_run and updates:
-            graphql.update_project_item_fields(
-                project_id=project['id'],
-                item_id=issue['id'],
-                updates=updates
+        if updates:
+            # Constructing the comment
+            comment = "The following fields have been updated:\n" + "\n".join(
+                [f"{item['field']}: {item['value']}" for item in comment_fields]
             )
 
-            # Add a comment summarizing the updated fields
-            comment = f"The following fields have been updated: {', '.join(comment_fields)}"
-            graphql.add_issue_comment(issue['content']['id'], comment)
+            if not config.dry_run:
+                graphql.update_project_item_fields(
+                    project_id=project['id'],
+                    item_id=issue['id'],
+                    updates=updates
+                )
+
+                # Add a comment summarizing the updated fields
+                graphql.add_issue_comment(issue['content']['id'], comment)
+
+            # Log the output
             logger.info(f"Comment has been added to: {issue['content']['url']} with comment {comment}")
 
 

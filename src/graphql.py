@@ -77,13 +77,13 @@ def get_project_issues(owner, owner_type, project_number, filters=None, after=No
                   }}
                   release: fieldValueByName(name: "Release") {{
                     ... on ProjectV2ItemFieldSingleSelectValue {{
+                      id: optionId
                       name
-                      id
                     }}
                   }}
                   week: fieldValueByName(name: "Week") {{
                     ... on ProjectV2ItemFieldIterationValue {{
-                      id
+                      id: iterationId
                       title
                       startDate
                       duration
@@ -97,8 +97,8 @@ def get_project_issues(owner, owner_type, project_number, filters=None, after=No
                   }}
                   size: fieldValueByName(name: "Size") {{
                     ... on ProjectV2ItemFieldSingleSelectValue {{
+                      id: optionId
                       name
-                      id
                     }}
                   }}
                   content {{
@@ -154,11 +154,6 @@ def get_project_issues(owner, owner_type, project_number, filters=None, after=No
         filtered_issues = []
         for node in nodes:
             if filters.get('open_only') and node['content'].get('state') != 'OPEN':
-                continue
-            if not node['dueDate']:
-                continue
-
-            if node['release'] and node['week']:
                 continue
 
             filtered_issues.append(node)
