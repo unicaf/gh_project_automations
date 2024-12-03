@@ -126,7 +126,7 @@ def set_missing_fields(issues):
             comment = f"The following fields have been updated: {', '.join(comment_fields)}"
             graphql.add_issue_comment(issue['content']['id'], comment)
             logger.info(f"Comment has been added to: {issue['content']['url']} with comment {comment}")
-            exit()
+
 
 def main():
     # Log the start of the process
