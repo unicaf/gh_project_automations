@@ -19,6 +19,27 @@ def find_week(weeks, date_str):
     return None  # Return None if no matching week is found
 
 
+def find_previous_week(weeks, date_str):
+    # Parse the input date
+    target_date = datetime.strptime(date_str, '%Y-%m-%d')
+
+    # Sort the weeks by their startDate
+    sorted_weeks = sorted(weeks, key=lambda week: datetime.strptime(week['startDate'], '%Y-%m-%d'))
+
+    previous_week = None
+    for i, week in enumerate(sorted_weeks):
+        week_start_date = datetime.strptime(week['startDate'], '%Y-%m-%d')
+        week_end_date = week_start_date + timedelta(days=week['duration'] - 1)
+
+        # If the current week includes the target date or is in the future, pick the previous week
+        if week_start_date <= target_date <= week_end_date or week_start_date > target_date:
+            if i > 0:
+                previous_week = sorted_weeks[i - 1]
+            break
+
+    return previous_week
+
+
 def find_release(releases, date_str):
     from datetime import datetime
 

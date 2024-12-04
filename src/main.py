@@ -27,7 +27,7 @@ def fields_based_on_due_date(project, issue, updates):
     output = due_date
 
     # Handle missing 'week' field by finding the appropriate week based on the due date
-    week = utils.find_week(weeks=week_options, date_str=due_date)
+    week = utils.find_previous_week(weeks=week_options, date_str=due_date)
     if week and week != issue.get('week'):
         # Add the 'week' field update to the updates list
         updates.append({
@@ -90,7 +90,7 @@ def fields_based_on_estimation(project, issue, updates):
     return comment_fields
 
 
-def set_missing_fields(issues):
+def update_fields(issues):
     # Fetch the project details from GraphQL
     project = graphql.get_project(
         organization_name=config.repository_owner,
@@ -119,7 +119,7 @@ def set_missing_fields(issues):
                 )
 
                 # Add a comment summarizing the updated fields
-                graphql.add_issue_comment(issue['content']['id'], comment)
+                # graphql.add_issue_comment(issue['content']['id'], comment)
 
             # Log the output
             logger.info(f"Comment has been added to: {issue['content']['url']} with comment {comment}")
@@ -144,8 +144,8 @@ def main():
         logger.info('No issues have been found')
         return
 
-    # Process the issues to set missing fields
-    set_missing_fields(issues)
+    # Process the issues to update fields
+    update_fields(issues)
 
 
 if __name__ == "__main__":
