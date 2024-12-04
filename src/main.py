@@ -119,7 +119,7 @@ def update_fields(issues):
                 )
 
                 # Add a comment summarizing the updated fields
-                # graphql.add_issue_comment(issue['content']['id'], comment)
+                graphql.add_issue_comment(issue['content']['id'], comment)
 
             # Log the output
             logger.info(f"Comment has been added to: {issue['content']['url']} with comment {comment}")
