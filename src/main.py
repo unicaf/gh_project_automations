@@ -27,7 +27,7 @@ def fields_based_on_due_date(project, issue, updates):
     output = due_date
 
     # Handle missing 'week' field by finding the appropriate week based on the due date
-    week = utils.find_previous_week(weeks=week_options, date_str=due_date)
+    week = utils.find_week(weeks=week_options, date_str=due_date)
     if week and week != issue.get('week'):
         # Add the 'week' field update to the updates list
         updates.append({

@@ -6,17 +6,31 @@ def find_week(weeks, date_str):
     # Parse the input date
     target_date = datetime.strptime(date_str, '%Y-%m-%d')
 
-    for week in weeks:
-        # Parse the start date of the week
-        start_date = datetime.strptime(week['startDate'], '%Y-%m-%d')
-        # Calculate the end date based on the duration
-        end_date = start_date + timedelta(days=week['duration'] - 1)
+    # Get today's date
+    today = datetime.today()
 
-        # Check if the target date falls within this week
-        if start_date <= target_date <= end_date:
-            return week  # Return the matching week dictionary
+    # Calculate the start of the current week (Monday by default)
+    start_of_week = datetime(today.year, today.month, today.day) - timedelta(days=today.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    return None  # Return None if no matching week is found
+    # Calculate the end of the current week
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
+
+    # Check if the target date is within the current week
+    if start_of_week <= target_date <= end_of_week:
+        for week in weeks:
+            # Parse the start date of the week
+            start_date = datetime.strptime(week['startDate'], '%Y-%m-%d')
+            # Calculate the end date based on the duration
+            end_date = start_date + timedelta(days=week['duration'] - 1)
+
+            # Check if the target date falls within this week
+            if start_date <= target_date <= end_date:
+                return week  # Return the matching week dictionary
+
+        return None  # Return None if no matching week is found
+    else:
+        return find_previous_week(weeks, date_str)
 
 
 def find_previous_week(weeks, date_str):
