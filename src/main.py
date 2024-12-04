@@ -147,6 +147,8 @@ def main():
     # Process the issues to update fields
     update_fields(issues)
 
+    logger.info('Process finished...')
+
 
 if __name__ == "__main__":
     main()
