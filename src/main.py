@@ -108,7 +108,7 @@ def set_missing_fields(issues):
         if updates:
             # Constructing the comment
             comment = "The following fields have been updated:\n" + "\n".join(
-                [f"{item['field']}: {item['value']}" for item in comment_fields]
+                [f"- {item['field']}: **{item['value']}**" for item in comment_fields]
             )
 
             if not config.dry_run:
