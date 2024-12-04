@@ -1,9 +1,4 @@
-import smtplib
 from datetime import datetime, timedelta
-
-import config
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from logger import logger
 
 
@@ -25,6 +20,8 @@ def find_week(weeks, date_str):
 
 
 def find_release(releases, date_str):
+    from datetime import datetime
+
     # Parse the input date
     target_date = datetime.strptime(date_str, '%Y-%m-%d')
 
@@ -33,26 +30,31 @@ def find_release(releases, date_str):
             # Extract the date range from the release name
             date_range = release['name'].split('(')[0].strip()  # Get the part before the version
             if ' - ' in date_range:
-                # Extract start and end dates
                 start_date_str, end_date_str = date_range.split(' - ')
-                # Add the year explicitly if missing
-                year = target_date.year  # Assume the target year if year is missing
-                if len(start_date_str.split(',')) == 1:
-                    start_date_str = f"{start_date_str}, {year}"
-                if len(end_date_str.split(',')) == 1:
-                    end_date_str = f"{end_date_str}, {year}"
-                # Parse dates
-                start_date = datetime.strptime(start_date_str.strip(), '%b %d, %Y')
+                # Append the year from the end_date for parsing
+                if ',' not in end_date_str:
+                    end_date_str += f", {target_date.year}"
                 end_date = datetime.strptime(end_date_str.strip(), '%b %d, %Y')
-                logger.debug(f"Parsed: {start_date} - {end_date}")
-            else:
-                logger.debug(f"Skipping invalid date range: {release['name']}")
-                continue
 
-            # Check if the target date falls within this release period
-            if start_date <= target_date <= end_date:
-                return release  # Return the matching release dictionary
-        except ValueError as e:
+                # Determine the year for the start_date
+                if ',' not in start_date_str:
+                    # Parse start_date with the same year as end_date by default
+                    start_date = datetime.strptime(start_date_str.strip() + f", {end_date.year}", '%b %d, %Y')
+
+                    # Adjust the year if the start month is greater than the end month
+                    if start_date.month > end_date.month:
+                        start_date = start_date.replace(year=end_date.year - 1)
+                else:
+                    start_date = datetime.strptime(start_date_str.strip(), '%b %d, %Y')
+
+                # Debugging output for validation
+                logger.debug(f"Release: {release['name']}, Start: {start_date}, End: {end_date}")
+
+                # Check if the target date falls within this release period
+                if start_date <= target_date <= end_date:
+                    return release  # Return the matching release dictionary
+        except Exception as e:
+            # Log parsing issues for debugging
             logger.error(f"Error parsing release: {release['name']}, Error: {e}")
             continue
 
@@ -63,10 +65,10 @@ def find_size(sizes, estimate_name):
     # Define size thresholds dynamically from the size definitions
     size_thresholds = {
         'X-Large (1-4 weeks)': (168, float('inf')),  # >168 hours (1-4 weeks)
-        'Large (4+ -7 days)': (96, 168),           # 96-168 hours (4-7 days)
-        'Medium (2+ -4 days)': (48, 96),           # 48-96 hours (2-4 days)
-        'Small (1-2 days)': (24, 48),              # 24-48 hours (1-2 days)
-        'Tiny (< 1 day, 1-6 hours)': (0, 24)       # <24 hours (Tiny)
+        'Large (4+ -7 days)': (96, 168),  # 96-168 hours (4-7 days)
+        'Medium (2+ -4 days)': (48, 96),  # 48-96 hours (2-4 days)
+        'Small (1-2 days)': (24, 48),  # 24-48 hours (1-2 days)
+        'Tiny (< 1 day, 1-6 hours)': (0, 24)  # <24 hours (Tiny)
     }
 
     # Convert the estimate to comparable hours
