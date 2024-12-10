@@ -97,6 +97,14 @@ def update_fields(issues):
         project_number=config.project_number
     )
 
+    comments_issue = None
+    if config.comments_issue_repo:
+        comments_issue = graphql.get_issue(
+            owner_name=config.repository_owner,
+            repo_name=config.comments_issue_repo,
+            issue_number=config.comments_issue_number
+        )
+
     # Iterate over all issues to check and set missing fields
     for issue in issues:
         updates = []
@@ -119,7 +127,11 @@ def update_fields(issues):
                 )
 
                 # Add a comment summarizing the updated fields
-                graphql.add_issue_comment(issue['content']['id'], comment)
+                if comments_issue:
+                    comment = f"Issue {issue['content']['url']}: {comment}"
+                    graphql.add_issue_comment(comments_issue['id'], comment)
+                else:
+                    graphql.add_issue_comment(issue['content']['id'], comment)
 
             # Log the output
             logger.info(f"Comment has been added to: {issue['content']['url']} with comment {comment}")

@@ -22,6 +22,14 @@ inputs:
     description: "Determines if the GitHub is the enterprise ot not (True,False)"
     required: false
     default: 'False'
+  comments_issue_number:
+    description: "Set the issue number of the ticket you want the comments to be placed"
+    required: false
+    default: 'False'
+  comments_issue_repo:
+    description: "Set the issue repo of the ticket you want the comments to be placed"
+    required: false
+    default: 'False'
   dry_run:
     description: "DryRun Mode (True,False)"
     required: false
